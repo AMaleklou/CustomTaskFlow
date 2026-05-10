@@ -10,6 +10,11 @@
 *.userosscache
 *.sln.docstates
 *.env
+*.db
+*.db-shm
+*.db-wal
+bin/
+obj/
 
 bin/
 obj/
