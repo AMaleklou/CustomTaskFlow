@@ -110,5 +110,50 @@ namespace CustomTaskFlow.Api.Controllers
             return Ok(ApiResponse<TaskResponseDto>.SuccessResponse(task, "Task fetched successfully"));
         }
 
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update (int id, UpdateTaskDto dto)
+        {
+           var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
+
+            if (task == null) return NotFound(ApiResponse<string>.ErrorResponse(["No task exists with id " + id], "Task not found"));
+
+            task.Title = dto.Title; 
+            task.Description = dto.Description;
+            task.IsCompleted = dto.IsCompleted;
+
+            await _context.SaveChangesAsync();
+
+            var response = new TaskResponseDto
+            {
+                Id = task.Id,
+                Title = task.Title,
+                Description = task.Description,
+                IsCompleted = task.IsCompleted,
+                CreatedAt = task.CreatedAt
+            };
+           
+            return Ok(ApiResponse<TaskResponseDto>.SuccessResponse(response, "Task updated successfully"));
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete (int id)
+        {
+            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
+            if (task == null) return NotFound(ApiResponse<string>.ErrorResponse(["No task exists with id " + id], "Task not found"));
+
+            task.IsDeleted = true;
+            await _context.SaveChangesAsync();
+            var response = new TaskResponseDto
+            {
+                Id = task.Id,
+                Title = task.Title,
+                Description = task.Description,
+                IsCompleted = task.IsCompleted,
+                CreatedAt = task.CreatedAt
+            };
+            return Ok(ApiResponse<TaskResponseDto>.SuccessResponse(response, "Task deleted successfully"));
+        }
+
     }
 }
