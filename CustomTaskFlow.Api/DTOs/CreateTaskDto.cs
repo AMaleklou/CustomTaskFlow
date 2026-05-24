@@ -1,8 +1,12 @@
-﻿namespace CustomTaskFlow.Api.DTOs
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace CustomTaskFlow.Api.DTOs
 {
     public class CreateTaskDto
     {
-        public string Title { get; set; } = null!;
+        [Required, MaxLength(50), MinLength(3)]
+        public string Title { get; set; } = string.Empty;
+        [MaxLength(300)]
         public string? Description { get; set; }
     }
 }

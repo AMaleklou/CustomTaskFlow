@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using CustomTaskFlow.Api.Common;
 using System.Diagnostics;
 using System.Net.WebSockets;
+using CustomTaskFlow.Api.Mappings;
 
 namespace CustomTaskFlow.Api.Controllers
 {
@@ -124,15 +125,16 @@ namespace CustomTaskFlow.Api.Controllers
 
             await _context.SaveChangesAsync();
 
-            var response = new TaskResponseDto
-            {
-                Id = task.Id,
-                Title = task.Title,
-                Description = task.Description,
-                IsCompleted = task.IsCompleted,
-                CreatedAt = task.CreatedAt
-            };
-           
+            //var response = new TaskResponseDto
+            //{
+            //    Id = task.Id,
+            //    Title = task.Title,
+            //    Description = task.Description,
+            //    IsCompleted = task.IsCompleted,
+            //    CreatedAt = task.CreatedAt
+            //};
+
+            var response = task.ToResponseDto();
             return Ok(ApiResponse<TaskResponseDto>.SuccessResponse(response, "Task updated successfully"));
         }
 
@@ -144,14 +146,15 @@ namespace CustomTaskFlow.Api.Controllers
 
             task.IsDeleted = true;
             await _context.SaveChangesAsync();
-            var response = new TaskResponseDto
-            {
-                Id = task.Id,
-                Title = task.Title,
-                Description = task.Description,
-                IsCompleted = task.IsCompleted,
-                CreatedAt = task.CreatedAt
-            };
+            //var response = new TaskResponseDto
+            //{
+            //    Id = task.Id,
+            //    Title = task.Title,
+            //    Description = task.Description,
+            //    IsCompleted = task.IsCompleted,
+            //    CreatedAt = task.CreatedAt
+            //};
+            var response = task.ToResponseDto();
             return Ok(ApiResponse<TaskResponseDto>.SuccessResponse(response, "Task deleted successfully"));
         }
 
