@@ -1,5 +1,6 @@
 ﻿using CustomTaskFlow.Api.Common;
 using CustomTaskFlow.Api.Data;
+using CustomTaskFlow.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -37,6 +38,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     options.UseSqlite(connectionString);
 });
+
+
+//Services Registration
+builder.Services.AddScoped<ITaskService, TaskService>();
 
 var app = builder.Build();
 

@@ -7,6 +7,7 @@ using CustomTaskFlow.Api.Common;
 using System.Diagnostics;
 using System.Net.WebSockets;
 using CustomTaskFlow.Api.Mappings;
+using CustomTaskFlow.Api.Services;
 
 namespace CustomTaskFlow.Api.Controllers
 {
@@ -15,9 +16,13 @@ namespace CustomTaskFlow.Api.Controllers
     public class TasksController : ControllerBase
     {
         private readonly AppDbContext _context;
-        public TasksController(AppDbContext context)
+        private readonly ITaskService _taskService;
+
+
+        public TasksController(AppDbContext context, ITaskService taskService)
         {
             _context = context;
+            _taskService = taskService;
         }
 
         [HttpPost]
@@ -93,22 +98,30 @@ namespace CustomTaskFlow.Api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var task = await _context.Tasks
-                                     .AsNoTracking()
-                                     .Where(t => t.Id == id && !t.IsDeleted)
-                                     .Select(t => new TaskResponseDto
-                                     {
-                                         Id = t.Id,
-                                         Title = t.Title,
-                                         Description = t.Description,
-                                         IsCompleted = t.IsCompleted,
-                                         CreatedAt = t.CreatedAt,
-                                     })
-                                     .FirstOrDefaultAsync();         
-            //if (task == null) return NotFound();
-            //return Ok(task);
-            if (task == null) return NotFound(ApiResponse<string>.ErrorResponse(["No task exists with id " + id], "Task not found"));
-            return Ok(ApiResponse<TaskResponseDto>.SuccessResponse(task, "Task fetched successfully"));
+            //var task = await _context.Tasks
+            //                         .AsNoTracking()
+            //                         .Where(t => t.Id == id && !t.IsDeleted)
+            //                         .Select(t => new TaskResponseDto
+            //                         {
+            //                             Id = t.Id,
+            //                             Title = t.Title,
+            //                             Description = t.Description,
+            //                             IsCompleted = t.IsCompleted,
+            //                             CreatedAt = t.CreatedAt,
+            //                         })
+            //                         .FirstOrDefaultAsync();         
+            ////if (task == null) return NotFound();
+            ////return Ok(task);
+            //if (task == null) return NotFound(ApiResponse<string>.ErrorResponse(["No task exists with id " + id], "Task not found"));
+            //return Ok(ApiResponse<TaskResponseDto>.SuccessResponse(task, "Task fetched successfully"));
+
+            var response = await _taskService.GetByIdAsync(id);
+
+            if (!response.Success)
+            {
+                return NotFound(response);
+            }
+            return Ok(response);
         }
 
 
