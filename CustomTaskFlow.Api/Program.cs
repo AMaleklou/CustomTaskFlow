@@ -1,5 +1,6 @@
 ﻿using CustomTaskFlow.Api.Common;
 using CustomTaskFlow.Api.Data;
+using CustomTaskFlow.Api.Middlewares;
 using CustomTaskFlow.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -54,6 +55,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.UseHttpsRedirection();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.MapControllers();
 app.Run();
 

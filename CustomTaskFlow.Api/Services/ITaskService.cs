@@ -9,6 +9,6 @@ namespace CustomTaskFlow.Api.Services
         Task<ApiResponse<TaskResponseDto>> CreateAsync(CreateTaskDto dto);
         Task<ApiResponse<TaskResponseDto>> UpdateAsync(int id, UpdateTaskDto dto);
         Task<ApiResponse<TaskResponseDto>> DeleteAsync(int id);
-        Task<ApiResponse<List<TaskResponseDto>>> GetAllAsync(int pageNumber, int pageSize, bool? isCompleted , string? search );
+        Task<ApiResponse<PagedResult<TaskResponseDto>>> GetAllAsync(int pageNumber, int pageSize, bool? isCompleted , string? search );
     }
 }

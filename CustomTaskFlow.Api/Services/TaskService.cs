@@ -48,16 +48,16 @@ namespace CustomTaskFlow.Api.Services
             return ApiResponse<TaskResponseDto>.SuccessResponse(response, "Task removed successfully");
         }
 
-        public async Task<ApiResponse<List<TaskResponseDto>>> GetAllAsync(int pageNumber, int pageSize, bool? isCompleted , string? search)
+        public async Task<ApiResponse<PagedResult<TaskResponseDto>>> GetAllAsync(int pageNumber, int pageSize, bool? isCompleted , string? search)
         {
             if (pageNumber < 1)
             {
-                return ApiResponse<List<TaskResponseDto>>.ErrorResponse([$"Invalid page number {pageNumber}"], "Invalid PageNumber");
+                return ApiResponse<PagedResult<TaskResponseDto>>.ErrorResponse([$"Invalid page number {pageNumber}"], "Invalid PageNumber");
             }
 
             if (pageSize < 1 || pageSize > 50)
             {
-                return ApiResponse<List<TaskResponseDto>>.ErrorResponse([$"Invalid page size {pageSize}"], "Invalid PageSize");
+                return ApiResponse<PagedResult<TaskResponseDto>>.ErrorResponse([$"Invalid page size {pageSize}"], "Invalid PageSize");
             }
             var taskQuery = _context.Tasks.AsNoTracking();
 
@@ -70,13 +70,17 @@ namespace CustomTaskFlow.Api.Services
             {
                 taskQuery = taskQuery.Where(t => t.Title.Contains(search) || (t.Description != null && t.Description.Contains(search)));
             }
+
+            var totalCount = await taskQuery.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
             taskQuery = taskQuery.OrderByDescending(t => t.CreatedAt);
             taskQuery = taskQuery.Skip((pageNumber - 1) * pageSize);
             taskQuery = taskQuery.Take(pageSize);
 
             var taskList = await taskQuery
-                .Select(task => new TaskResponseDto
-                {
+                .Select(task => new  TaskResponseDto
+                {                  
                     Id = task.Id,
                     Title = task.Title,
                     Description = task.Description,
@@ -85,7 +89,17 @@ namespace CustomTaskFlow.Api.Services
                 })
                 .ToListAsync();
 
-            return ApiResponse<List<TaskResponseDto>>.SuccessResponse(taskList, "Task fetched successfully");
+            var result = new PagedResult<TaskResponseDto>  
+
+              {
+                Items = taskList,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                TotalPages = totalPages
+              } ;
+
+            return ApiResponse<PagedResult<TaskResponseDto>>.SuccessResponse(result, "All Tasks fetched successfully");
         }
 
         public async Task<ApiResponse<TaskResponseDto>> GetByIdAsync(int id)
