@@ -1,19 +1,23 @@
-﻿using CustomTaskFlow.Api.Common;
+﻿using AutoMapper;
+using CustomTaskFlow.Api.Common;
 using CustomTaskFlow.Api.Data;
 using CustomTaskFlow.Api.DTOs;
 using CustomTaskFlow.Api.Mappings;
 using CustomTaskFlow.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace CustomTaskFlow.Api.Services
 {
     public class TaskService : ITaskService
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public TaskService(AppDbContext context) 
+        public TaskService(AppDbContext context,IMapper mapper) 
         { 
           _context = context;
+            _mapper = mapper;
         }
 
         public async Task<ApiResponse<TaskResponseDto>> CreateAsync(CreateTaskDto dto)
@@ -28,7 +32,8 @@ namespace CustomTaskFlow.Api.Services
             };
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
-            var result = task.ToResponseDto();
+            var result = _mapper.Map<TaskResponseDto>(task);
+            //var result = task.ToResponseDto();
 
             return ApiResponse<TaskResponseDto>.SuccessResponse(result, "Task created  successfully");
         }
@@ -43,7 +48,8 @@ namespace CustomTaskFlow.Api.Services
             task.IsDeleted = true;
             await _context.SaveChangesAsync();
 
-            var response = task.ToResponseDto();
+            //var response = task.ToResponseDto();
+            var response = _mapper.Map<TaskResponseDto>(task);
 
             return ApiResponse<TaskResponseDto>.SuccessResponse(response, "Task removed successfully");
         }
@@ -136,7 +142,8 @@ namespace CustomTaskFlow.Api.Services
 
             await _context.SaveChangesAsync();
 
-            var response = task.ToResponseDto();
+            //var response = task.ToResponseDto();
+            var response = _mapper.Map<TaskResponseDto>(dto);
 
             return ApiResponse<TaskResponseDto>.SuccessResponse(response, "Task updated successfully");
         }

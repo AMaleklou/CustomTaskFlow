@@ -1,9 +1,14 @@
 ﻿using CustomTaskFlow.Api.Common;
 using CustomTaskFlow.Api.Data;
+using CustomTaskFlow.Api.DTOs;
+using CustomTaskFlow.Api.Mappings;
 using CustomTaskFlow.Api.Middlewares;
+using CustomTaskFlow.Api.Models;
 using CustomTaskFlow.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
+using Microsoft.Extensions.DependencyInjection;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,7 +48,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 //Services Registration
 builder.Services.AddScoped<ITaskService, TaskService>();
-
+builder.Services.AddAutoMapper(typeof(TaskProfile));
 var app = builder.Build();
 
 
