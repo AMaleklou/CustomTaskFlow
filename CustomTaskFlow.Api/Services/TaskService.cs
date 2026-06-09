@@ -4,20 +4,24 @@ using CustomTaskFlow.Api.Data;
 using CustomTaskFlow.Api.DTOs;
 using CustomTaskFlow.Api.Mappings;
 using CustomTaskFlow.Api.Models;
+using CustomTaskFlow.Api.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.IO.Pipelines;
 
 
 namespace CustomTaskFlow.Api.Services
 {
     public class TaskService : ITaskService
     {
-        private readonly AppDbContext _context;
+        //private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+        private readonly ITaskRepository _taskRepository;
 
-        public TaskService(AppDbContext context,IMapper mapper) 
+        public TaskService(IMapper mapper,ITaskRepository taskRepository) 
         { 
-          _context = context;
+          //_context = context;
             _mapper = mapper;
+            _taskRepository = taskRepository;
         }
 
         public async Task<ApiResponse<TaskResponseDto>> CreateAsync(CreateTaskDto dto)
@@ -30,27 +34,21 @@ namespace CustomTaskFlow.Api.Services
                 CreatedAt = DateTime.UtcNow,
 
             };
-            _context.Tasks.Add(task);
-            await _context.SaveChangesAsync();
-            var result = _mapper.Map<TaskResponseDto>(task);
-            //var result = task.ToResponseDto();
-
+            var createdTask = await _taskRepository.CreateAsync(task);
+            var result = _mapper.Map<TaskResponseDto>(createdTask);
             return ApiResponse<TaskResponseDto>.SuccessResponse(result, "Task created  successfully");
         }
 
         public async Task<ApiResponse<TaskResponseDto>> DeleteAsync(int id)
         {
-            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
+            var task = await _taskRepository.GetForUpdateDeleteAsync(id);
             if (task == null)
             {
                 return ApiResponse<TaskResponseDto>.ErrorResponse([$"No task exists with id {id}"], "Task not found");
             }
             task.IsDeleted = true;
-            await _context.SaveChangesAsync();
-
-            //var response = task.ToResponseDto();
+            await _taskRepository.SaveChangesAsync();
             var response = _mapper.Map<TaskResponseDto>(task);
-
             return ApiResponse<TaskResponseDto>.SuccessResponse(response, "Task removed successfully");
         }
 
@@ -65,86 +63,43 @@ namespace CustomTaskFlow.Api.Services
             {
                 return ApiResponse<PagedResult<TaskResponseDto>>.ErrorResponse([$"Invalid page size {pageSize}"], "Invalid PageSize");
             }
-            var taskQuery = _context.Tasks.AsNoTracking();
-
-            taskQuery = taskQuery.Where(q => !q.IsDeleted);
-            if (isCompleted.HasValue)
+            var taskQuery = await _taskRepository.GetAllAsync(pageNumber,pageSize,isCompleted,search);
+            var result = new PagedResult<TaskResponseDto>
             {
-                taskQuery = taskQuery.Where(t => t.IsCompleted == isCompleted.Value);
-            }
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                taskQuery = taskQuery.Where(t => t.Title.Contains(search) || (t.Description != null && t.Description.Contains(search)));
-            }
-
-            var totalCount = await taskQuery.CountAsync();
-            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
-
-            taskQuery = taskQuery.OrderByDescending(t => t.CreatedAt);
-            taskQuery = taskQuery.Skip((pageNumber - 1) * pageSize);
-            taskQuery = taskQuery.Take(pageSize);
-
-            var taskList = await taskQuery
-                .Select(task => new  TaskResponseDto
-                {                  
-                    Id = task.Id,
-                    Title = task.Title,
-                    Description = task.Description,
-                    IsCompleted = task.IsCompleted,
-                    CreatedAt = task.CreatedAt,
-                })
-                .ToListAsync();
-
-            var result = new PagedResult<TaskResponseDto>  
-
-              {
-                Items = taskList,
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                TotalCount = totalCount,
-                TotalPages = totalPages
-              } ;
-
+                Items = _mapper.Map<List<TaskResponseDto>>(taskQuery.Items),
+                PageNumber = taskQuery.PageNumber,
+                PageSize = taskQuery.PageSize,
+                TotalCount = taskQuery.TotalCount,
+                TotalPages = taskQuery.TotalPages
+            };
             return ApiResponse<PagedResult<TaskResponseDto>>.SuccessResponse(result, "All Tasks fetched successfully");
         }
 
         public async Task<ApiResponse<TaskResponseDto>> GetByIdAsync(int id)
         {
-            var task = await _context.Tasks
-                                     .AsNoTracking()
-                                     .Where(t => t.Id == id && !t.IsDeleted)
-                                     .Select(t => new TaskResponseDto
-                                     {
-                                         Id = t.Id,
-                                         Title = t.Title,
-                                         Description = t.Description,
-                                         IsCompleted = t.IsCompleted,
-                                         CreatedAt = t.CreatedAt,
-                                     })
-                                     .FirstOrDefaultAsync();
-            if (task == null)
+            var RepoTask = await _taskRepository.GetByIdAsync(id);
+            if (RepoTask == null)
             {
                 return ApiResponse<TaskResponseDto>.ErrorResponse([$"No task exists with id {id}"], "Task not found");
-            }                         
+            }
+            var task = _mapper.Map<TaskResponseDto>(RepoTask);                        
             return ApiResponse<TaskResponseDto>.SuccessResponse(task, "Task fetched successfully");
         }
 
         public async Task<ApiResponse<TaskResponseDto>> UpdateAsync(int id, UpdateTaskDto dto)
         {
-            var task = await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
+            var task = await _taskRepository.GetForUpdateDeleteAsync(id);
             if (task == null)
             {
                 return ApiResponse<TaskResponseDto>.ErrorResponse([$"No task exists with id {id}"], "Task not found");
             }
+
             task.Title = dto.Title;
             task.Description = dto.Description;
             task.IsCompleted = dto.IsCompleted;
 
-            await _context.SaveChangesAsync();
-
-            //var response = task.ToResponseDto();
-            var response = _mapper.Map<TaskResponseDto>(dto);
-
+             await _taskRepository.SaveChangesAsync();
+            var response = _mapper.Map<TaskResponseDto>(task);
             return ApiResponse<TaskResponseDto>.SuccessResponse(response, "Task updated successfully");
         }
     }
