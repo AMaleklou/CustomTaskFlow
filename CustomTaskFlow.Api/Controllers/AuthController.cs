@@ -26,5 +26,17 @@ namespace CustomTaskFlow.Api.Controllers
             }
             return Ok(response);
         }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
+        {
+            var response = await _userService.LoginAsync(dto);
+
+            if (!response.Success)
+            {
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
     }
 }
