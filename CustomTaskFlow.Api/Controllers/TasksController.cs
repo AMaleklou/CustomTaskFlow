@@ -2,6 +2,7 @@
 using CustomTaskFlow.Api.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using CustomTaskFlow.Api.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CustomTaskFlow.Api.Controllers
 {
@@ -28,6 +29,7 @@ namespace CustomTaskFlow.Api.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> GetAll(int pageNumber = 1, int pageSize= 10
                                                 , bool? isCompleted = null, string? search = null) 
         {

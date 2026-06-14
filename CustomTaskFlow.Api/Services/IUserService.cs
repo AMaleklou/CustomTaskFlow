@@ -6,7 +6,7 @@ namespace CustomTaskFlow.Api.Services
     public interface IUserService
     {
         Task<ApiResponse<UserResponseDto>> RegisterAsync(RegisterDTO dto);
-        Task<ApiResponse<UserResponseDto>> LoginAsync(LoginDto dto);
+        Task<ApiResponse<LoginResponseDto>> LoginAsync(LoginDto dto);
 
     }
 }
