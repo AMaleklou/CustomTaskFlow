@@ -31,7 +31,6 @@ namespace CustomTaskFlow.Api.Controllers
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
             var response = await _userService.LoginAsync(dto);
-
             if (!response.Success)
             {
                 return BadRequest(response);

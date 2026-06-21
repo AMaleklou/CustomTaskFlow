@@ -3,11 +3,13 @@ using CustomTaskFlow.Api.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using CustomTaskFlow.Api.Services;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace CustomTaskFlow.Api.Controllers
 {
     [ApiController]
     [Route("api/tasks")]
+    [Authorize]
     public class TasksController : ControllerBase
     {
         private readonly ITaskService _taskService;
@@ -17,10 +19,22 @@ namespace CustomTaskFlow.Api.Controllers
             _taskService = taskService;
         }
 
+        protected int GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (userIdClaim == null)
+                throw new UnauthorizedAccessException();
+
+            return int.Parse(userIdClaim.Value);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateTaskDto dto)
         {
-            var response = await _taskService.CreateAsync(dto);
+            var userId = GetCurrentUserId();
+            var response = await _taskService.CreateAsync(dto,userId);
+            
             if (!response.Success)
             {
                 return BadRequest(response);
@@ -29,11 +43,11 @@ namespace CustomTaskFlow.Api.Controllers
         }
 
         [HttpGet]
-        [Authorize]
         public async Task<IActionResult> GetAll(int pageNumber = 1, int pageSize= 10
                                                 , bool? isCompleted = null, string? search = null) 
         {
-            var response = await _taskService.GetAllAsync(pageNumber, pageSize, isCompleted, search);
+            var userId = GetCurrentUserId();
+            var response = await _taskService.GetAllAsync(userId,pageNumber, pageSize, isCompleted, search);
 
             if (!response.Success)
             {
@@ -45,7 +59,8 @@ namespace CustomTaskFlow.Api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var response = await _taskService.GetByIdAsync(id);
+            var userId = GetCurrentUserId();
+            var response = await _taskService.GetByIdAsync(userId,id);
 
             if (!response.Success)
             {
@@ -57,7 +72,8 @@ namespace CustomTaskFlow.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update (int id, UpdateTaskDto dto)
         {
-           var response = await _taskService.UpdateAsync(id, dto);
+            var userId = GetCurrentUserId();
+            var response = await _taskService.UpdateAsync(userId,id, dto);
             if (!response.Success)
             {
                 return NotFound(response);
@@ -68,7 +84,8 @@ namespace CustomTaskFlow.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete (int id)
         {
-            var response = await _taskService.DeleteAsync(id);
+            var userId = GetCurrentUserId();
+            var response = await _taskService.DeleteAsync(userId, id);
             if (!response.Success)
             {
                 return NotFound(response);

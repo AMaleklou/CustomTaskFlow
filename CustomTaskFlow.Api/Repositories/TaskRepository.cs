@@ -22,11 +22,11 @@ namespace CustomTaskFlow.Api.Repositories
             return task;
         }
 
-        public async Task<PagedResult<TaskItem>> GetAllAsync(int pageNumber, int pageSize, bool? isCompleted, string? search)
+        public async Task<PagedResult<TaskItem>> GetAllAsync(int userId, int pageNumber, int pageSize, bool? isCompleted, string? search)
         {
             var taskQuery =  _appDbContext.Tasks.AsNoTracking();
 
-            taskQuery =  taskQuery.Where(q => !q.IsDeleted);
+            taskQuery =  taskQuery.Where(q => !q.IsDeleted && q.Id == userId);
             if (isCompleted.HasValue)
             {
                 taskQuery =  taskQuery.Where(t => t.IsCompleted == isCompleted.Value);
@@ -56,17 +56,17 @@ namespace CustomTaskFlow.Api.Repositories
             return result;
         }
 
-        public async Task<TaskItem?> GetByIdAsync(int id)
+        public async Task<TaskItem?> GetByIdAsync(int userId, int id)
         {
             return await _appDbContext.Tasks
                                      .AsNoTracking()
-                                     .Where(t => t.Id == id && !t.IsDeleted)
+                                     .Where(t => t.Id == id && t.UserId == userId && !t.IsDeleted)
                                      .FirstOrDefaultAsync();
         }
 
-        public async Task<TaskItem?> GetForUpdateDeleteAsync(int id)
+        public async Task<TaskItem?> GetForUpdateDeleteAsync(int userId, int id)
         {
-            return await _appDbContext.Tasks.FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
+            return await _appDbContext.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId ==userId && !t.IsDeleted);
         }
 
         public async Task SaveChangesAsync()
