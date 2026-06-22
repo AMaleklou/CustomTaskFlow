@@ -9,5 +9,6 @@
         public string Email { get; set; } = null!;
 
         public DateTime CreatedAt { get; set; }
+        public string Role { get; set; } = null!;
     }
 }

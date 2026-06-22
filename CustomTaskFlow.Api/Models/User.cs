@@ -1,4 +1,6 @@
-﻿namespace CustomTaskFlow.Api.Models
+﻿using CustomTaskFlow.Api.Enums;
+
+namespace CustomTaskFlow.Api.Models
 {
     public class User
     {
@@ -8,5 +10,6 @@
         public string PasswordHash { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
         public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
+        public UserRole Role { get; set; } = UserRole.User;
     }
 }

@@ -7,6 +7,8 @@ namespace CustomTaskFlow.Api.Services
     {
         Task<ApiResponse<UserResponseDto>> RegisterAsync(RegisterDTO dto);
         Task<ApiResponse<LoginResponseDto>> LoginAsync(LoginDto dto);
+        Task<ApiResponse<PagedResult<UserResponseDto>>> GetAllAsync(int pageNumber, int pageSize, string? search);
+
 
     }
 }

@@ -1,4 +1,5 @@
-﻿using CustomTaskFlow.Api.Models;
+﻿using CustomTaskFlow.Api.Common;
+using CustomTaskFlow.Api.Models;
 
 namespace CustomTaskFlow.Api.Repositories
 {
@@ -7,5 +8,6 @@ namespace CustomTaskFlow.Api.Repositories
         Task<User?> GetByEmailAsync(string email);
         Task<User?> GetByUserNameAsync(string userName);
         Task<User> CreateAsync(User user);
+        Task<PagedResult<User>> GetAllAsync(int pageNumber, int pageSize, string? search);
     }
 }

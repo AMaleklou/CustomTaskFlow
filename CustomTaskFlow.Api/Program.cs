@@ -126,7 +126,13 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 
 //Inject Automapper
-builder.Services.AddAutoMapper(typeof(TaskProfile));
+
+//builder.Services.AddAutoMapper(typeof(TaskProfile));
+//builder.Services.AddAutoMapper(typeof(UserProfile));
+
+//بالایی رو کامنت کردیم و به جای هر باز ادد کردن فقط این یک خط رو مینویسیم خود سیستم شناسایی میکند
+builder.Services.AddAutoMapper(typeof(Program));
+
 
 var app = builder.Build();
 

@@ -20,6 +20,31 @@ namespace CustomTaskFlow.Api.Services
             _jwtService = jwtService;
         }
 
+        public async Task<ApiResponse<PagedResult<UserResponseDto>>> GetAllAsync(int pageNumber, int pageSize, string? search)
+        {
+            if (pageNumber < 1)
+            {
+                return ApiResponse<PagedResult<UserResponseDto>>.ErrorResponse([$"Invalid page number {pageNumber}"], "Invalid PageNumber");
+            }
+
+            if (pageSize < 1 || pageSize > 50)
+            {
+                return ApiResponse<PagedResult<UserResponseDto>>.ErrorResponse([$"Invalid page size {pageSize}"], "Invalid PageSize");
+            }
+
+            var userQuery = await _userRepository.GetAllAsync(pageNumber, pageSize, search);
+            var result = new PagedResult<UserResponseDto>
+            {
+                Items = _mapper.Map<List<UserResponseDto>>(userQuery.Items),
+                PageNumber = userQuery.PageNumber,
+                PageSize = userQuery.PageSize,
+                TotalCount = userQuery.TotalCount,
+                TotalPages = userQuery.TotalPages,
+            };
+            return ApiResponse<PagedResult<UserResponseDto>>.SuccessResponse(result, "All Users fetched successfully");
+
+        }
+
         public async Task<ApiResponse<LoginResponseDto>> LoginAsync(LoginDto dto)
         {
             var user = await _userRepository.GetByEmailAsync(dto.Email);

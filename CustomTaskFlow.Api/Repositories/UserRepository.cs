@@ -1,6 +1,8 @@
-﻿using CustomTaskFlow.Api.Data;
+﻿using CustomTaskFlow.Api.Common;
+using CustomTaskFlow.Api.Data;
 using CustomTaskFlow.Api.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 
 namespace CustomTaskFlow.Api.Repositories
 {
@@ -17,6 +19,35 @@ namespace CustomTaskFlow.Api.Repositories
              await _appDbContext.Users.AddAsync(user);
              await _appDbContext.SaveChangesAsync();
              return user;
+        }
+
+        public async Task<PagedResult<User>> GetAllAsync(int pageNumber, int pageSize, string? search)
+        {
+            var userQuery = _appDbContext.Users.AsNoTracking();
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                userQuery = userQuery.Where(u => u.Email.Contains(search) || (u.UserName != null && u.UserName.Contains(search)));
+            }
+            var totalCount = await userQuery.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+            userQuery = userQuery.OrderByDescending(t => t.CreatedAt);
+            userQuery = userQuery.Skip((pageNumber - 1) * pageSize);
+            userQuery = userQuery.Take(pageSize);
+
+            var userList = await userQuery.ToListAsync();
+
+            var result = new PagedResult<User>
+            {
+                Items = userList,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                TotalPages = totalPages
+            };
+
+            return  result;
+
         }
 
         public async Task<User?> GetByEmailAsync(string email)
