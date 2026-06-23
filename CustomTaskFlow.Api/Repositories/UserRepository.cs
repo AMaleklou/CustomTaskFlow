@@ -2,7 +2,9 @@
 using CustomTaskFlow.Api.Data;
 using CustomTaskFlow.Api.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Extensions;
 using System.Diagnostics;
+using CustomTaskFlow.Api.Enums;
 
 namespace CustomTaskFlow.Api.Repositories
 {
@@ -19,6 +21,13 @@ namespace CustomTaskFlow.Api.Repositories
              await _appDbContext.Users.AddAsync(user);
              await _appDbContext.SaveChangesAsync();
              return user;
+        }
+
+        public async Task<int> GetAdminCountAsync()
+        {
+            return await _appDbContext.Users
+                                      .AsNoTracking()
+                                       .CountAsync(u => u.Role == UserRole.Admin);                                           
         }
 
         public async Task<PagedResult<User>> GetAllAsync(int pageNumber, int pageSize, string? search)
@@ -58,11 +67,21 @@ namespace CustomTaskFlow.Api.Repositories
                                       .FirstOrDefaultAsync(x => x.Email == email);    
         }
 
+        public async Task<User?> GetByIdForUpdateAsync(int id)
+        {
+            return await _appDbContext.Users.FirstOrDefaultAsync(x => x.Id == id);
+        }
+
         public async Task<User?> GetByUserNameAsync(string userName)
         {
             return await _appDbContext.Users
                                       .AsNoTracking()
                                       .FirstOrDefaultAsync(x => x.UserName == userName);
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            await _appDbContext.SaveChangesAsync();
         }
     }
 }

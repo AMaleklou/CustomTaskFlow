@@ -1,4 +1,5 @@
-﻿using CustomTaskFlow.Api.Services;
+﻿using CustomTaskFlow.Api.DTOs;
+using CustomTaskFlow.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,12 +12,12 @@ namespace CustomTaskFlow.Api.Controllers
     {
         private readonly IUserService _userService;
 
-        public UsersController(IUserService userService) 
-        { 
-          _userService = userService;
+        public UsersController(IUserService userService)
+        {
+            _userService = userService;
         }
 
-        
+
         [HttpGet]
         public async Task<IActionResult> GetAllUsers(int pageNumber, int pageSize, string? search)
         {
@@ -27,5 +28,17 @@ namespace CustomTaskFlow.Api.Controllers
             }
             return Ok(response);
         }
+
+        [HttpPut("{userId}/role")]
+        public async Task<IActionResult> UpdateUserRole([FromRoute] int userId,[FromBody] UpdateUserRoleDto dto)
+        {
+            var response = await _userService.UpdateRoleAsync(userId, dto);
+            if (!response.Success)
+            {
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
+
     }
 }

@@ -9,5 +9,9 @@ namespace CustomTaskFlow.Api.Repositories
         Task<User?> GetByUserNameAsync(string userName);
         Task<User> CreateAsync(User user);
         Task<PagedResult<User>> GetAllAsync(int pageNumber, int pageSize, string? search);
+        Task<User?> GetByIdForUpdateAsync(int id);
+        Task<int> GetAdminCountAsync();
+        Task SaveChangesAsync();
+
     }
 }

@@ -4,6 +4,7 @@ using CustomTaskFlow.Api.Repositories;
 using CustomTaskFlow.Api.Models;
 using System.Threading.Tasks;
 using AutoMapper;
+using CustomTaskFlow.Api.Enums;
 
 namespace CustomTaskFlow.Api.Services
 {
@@ -88,6 +89,32 @@ namespace CustomTaskFlow.Api.Services
             var addedUser = await _userRepository.CreateAsync(user);
             var result = _mapper.Map<UserResponseDto>(addedUser);
             return ApiResponse<UserResponseDto>.SuccessResponse(result, "user created successfully");
+        }
+
+        public async Task<ApiResponse<UserResponseDto>> UpdateRoleAsync(int id, UpdateUserRoleDto dto)
+        {
+            var user = await _userRepository.GetByIdForUpdateAsync(id);
+            if (user == null)
+            {
+                return ApiResponse<UserResponseDto>.ErrorResponse(["User not found"],"User not found");
+            }
+            if (!Enum.TryParse<UserRole>(dto.Role, true, out var newRole))
+            {
+                return ApiResponse<UserResponseDto>.ErrorResponse(["Invalid role"],"Invalid role");
+            }
+            var adminCount = await _userRepository.GetAdminCountAsync();
+
+            if (user.Role == UserRole.Admin && newRole != UserRole.Admin && adminCount <= 1)
+            {
+                return ApiResponse<UserResponseDto>.ErrorResponse(["Cannot remove the last administrator"],"Unable to update role");
+            }
+
+            user.Role = newRole;
+
+            await _userRepository.SaveChangesAsync();
+            var response = _mapper.Map<UserResponseDto>(user);
+            return ApiResponse<UserResponseDto>.SuccessResponse(response, "User Role updated successfully");
+
         }
     }
 }
